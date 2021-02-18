@@ -1,6 +1,6 @@
 <template>
     <table>
-        <tr>
+        <tr class="header">
             <th class="empty"></th>
             <th v-for="(column, index) in sheetContent[0]" :key="index">{{ index }}</th>
         </tr>
@@ -243,14 +243,18 @@ export default {
       width: 100%;
       min-width: 800px;
       box-shadow: 0px 0px 15px 2px #00000027;
+      border: 1px solid #bbb;
     }
     th, td {
-      border: .5px solid #888888;
+      border: .5px solid #f3f3f3;
       user-select: none;
       position: relative;
       height: 2.5rem;
       overflow: hidden;
       outline: 0;
+    }
+    th {
+      border-bottom: 1px solid #bbb;
     }
     td {
       cursor: pointer;
@@ -265,6 +269,7 @@ export default {
     }
     td.sidebar {
       font-weight: bold;
+      border-right: 1px solid #bbb;
     }
     td textarea {
       pointer-events: none;
