@@ -11,10 +11,10 @@
             :key="cellIndex"
             @focus="selectCell(`${rowIndex}-${cellIndex}`)"
             @dblclick="selectForEditing"
-            :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`), edit: currentCell != null && currentCell == editCell}"
+            :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`)}"
             @contextmenu="cellOptions($event, `${rowIndex}-${cellIndex}`)"
             >
-                {{ getValue(`${rowIndex}-${cellIndex}`) }}
+                {{ cell.startsWith('=') ? getValue(`${rowIndex}-${cellIndex}`) : cell }}
                 <textarea
                 rows="1"
                 v-if="editCell == `${rowIndex}-${cellIndex}`"
@@ -30,24 +30,26 @@
                   <button @click="selectForEditing">Edit</button>
                   <button @click="setValue(null, '='); selectForEditing($event)">Function</button>
                 </div>
-                <div v-if="functionTooltips == `${rowIndex}-${cellIndex}`" class="context-menu function-options">
+                <div v-if="functionTooltips == `${rowIndex}-${cellIndex}`"
+                  class="context-menu function-options"
+                  >
                   <small>Writing a function</small>
-                  <div v-if="functionTooltipStep == 0 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 0 && !functionError">
                     Please select your first cell
                   </div>
-                  <div v-if="functionTooltipStep == 1 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
                     Please choose a function
                   </div>
-                  <button v-if="functionTooltipStep == 1 && !functionError">
+                  <button tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
                     +
                   </button>
-                  <button v-if="functionTooltipStep == 1 && !functionError">
+                  <button tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
                     -
                   </button>
-                  <div v-if="functionTooltipStep == 3 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError">
                     Please select your last cell
                   </div>
-                  <div v-if="functionTooltipStep == 4 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 3 && !functionError">
                     result: <strong>{{ getValue(`${rowIndex}-${cellIndex}`) }}</strong>
                   </div>
                   <div v-if="functionError" class="error">
@@ -67,12 +69,12 @@ export default {
       editCell: null,
       options: null,
       functionTooltips: null,
-      functionTooltipStep: 0,
+      functionTooltipStep: {},
       functionError: null,
       isWritingFunction: false,
       currentValue: '',
       sheetContent: [
-        ['0', '=(1-1)-(2-2)', '', '5'],
+        ['0', '=(1-1)', '', '5'],
         ['1', '', '', '5'],
         ['1', '', '6', '5']
       ]
@@ -139,10 +141,6 @@ export default {
       if (this.currentValue.startsWith('=')) {
         this.functionTooltips = this.currentCell
       }
-      if (this.checkIfFunction(this.currentValue)) {
-        this.functionTooltipStep = 4
-        this.isWritingFunction = true
-      }
     },
     getValue: function (key, crude = false) {
       const row = key.split('-')[0]
@@ -153,8 +151,8 @@ export default {
         return { error: 'Selected cell out of range' }
       }
       value = this.sheetContent[row][col]
-      if (this.checkIfFunction(value) && !crude) {
-        return this.calculateValue(value)
+      if (this.checkIfFunction(value, key) && !crude && this.functionTooltipStep[key] >= 3) {
+        return this.calculateValue(value, key)
       }
       return value
     },
@@ -169,15 +167,21 @@ export default {
       const row = this.currentCell.split('-')[0]
       const col = this.currentCell.split('-')[1]
       this.sheetContent[row][col] = newValue
-      this.$forceUpdate()
 
       if (newValue.startsWith('=')) {
         this.functionTooltips = this.currentCell
+        this.checkIfFunction(newValue)
         this.isWritingFunction = true
-        this.functionError = null
       } else {
         this.closeTooltips()
       }
+      this.$forceUpdate()
+    },
+    addToValue: function (newToValue) {
+      const key = this.currentCell
+      let finalValue = this.getValue(key, true)
+      finalValue += newToValue
+      this.setValue(null, finalValue)
     },
     moveTo: function (newPos) {
       this.closeOptions()
@@ -200,16 +204,36 @@ export default {
     closeTooltips: function () {
       this.functionTooltips = null
     },
-    checkIfFunction (value) {
-      const expected = ['=(-)-(-)', '=(-)+(-)']
-      const actual = value.replace(/[0-9\s]/g, '')
-      return expected.indexOf(actual) >= 0
+    checkIfFunction (value, key = null) {
+      const actualValue = value.replace(/[0-9\s]/g, '')
+      const finalStep = ['=(-)-(-)', '=(-)+(-)']
+      key = key || this.currentCell
+      if (finalStep.indexOf(actualValue) >= 0) {
+        this.functionTooltipStep[key] = 3
+        return true
+      }
+      const thirdStep = ['=(-)-', '=(-)+']
+      if (thirdStep.indexOf(actualValue) >= 0) {
+        this.functionTooltipStep[key] = 2
+        return true
+      }
+      const secondStep = ['=(-)']
+      if (secondStep.indexOf(actualValue) >= 0) {
+        this.functionTooltipStep[key] = 1
+        return true
+      }
+      if (actualValue.startsWith('=')) {
+        this.functionTooltipStep[key] = 0
+        return true
+      }
+      delete this.functionTooltipStep[key]
+      return false
     },
-    calculateValue (func) {
+    calculateValue (func, key) {
       const cellRegExp = /\(.*?\)/g // Regular expresion to match everything inside parentheses
       const firstCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
       const secondCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
-      if ((firstCell === this.currentCell || this.secondCell === this.currentCell) && this.editCell) {
+      if (firstCell === key || secondCell === key) {
         this.functionError = "You should pick a cell that isn't the current one"
         return 0
       }
@@ -301,6 +325,8 @@ export default {
       gap: 10px;
       background-color: #fff;
       cursor: default;
+      opacity: 1;
+      transition: opacity .5s ease;
     }
     .context-menu > button {
       cursor: pointer;
