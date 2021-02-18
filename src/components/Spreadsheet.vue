@@ -34,26 +34,26 @@
                   class="context-menu function-options"
                   >
                   <small>Writing a function</small>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 0 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 0 && !functionError[`${rowIndex}-${cellIndex}`]">
                     Please select your first cell
                   </div>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     Please choose a function
                   </div>
-                  <button tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
+                  <button tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     +
                   </button>
-                  <button tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError">
+                  <button tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     -
                   </button>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError[`${rowIndex}-${cellIndex}`]">
                     Please select your last cell
                   </div>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 3 && !functionError">
+                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 3 && !functionError[`${rowIndex}-${cellIndex}`]">
                     result: <strong>{{ getValue(`${rowIndex}-${cellIndex}`) }}</strong>
                   </div>
-                  <div v-if="functionError" class="error">
-                    {{ functionError }}
+                  <div v-if="functionError[`${rowIndex}-${cellIndex}`]" class="error">
+                    {{ functionError[`${rowIndex}-${cellIndex}`] }}
                     </div>
                 </div>
             </td>
@@ -70,7 +70,7 @@ export default {
       options: null,
       functionTooltips: null,
       functionTooltipStep: {},
-      functionError: null,
+      functionError: {},
       isWritingFunction: false,
       currentValue: '',
       sheetContent: [
@@ -205,47 +205,61 @@ export default {
       this.functionTooltips = null
     },
     checkIfFunction (value, key = null) {
-      const actualValue = value.replace(/[0-9\s]/g, '')
-      const finalStep = ['=(-)-(-)', '=(-)+(-)']
+      const finalStep = /=\([0-9]-[0-9]\)[+-]\([0-9]-[0-9]\)/
       key = key || this.currentCell
-      if (finalStep.indexOf(actualValue) >= 0) {
+      this.validateFunction(value, key)
+      if (finalStep.test(value)) {
         this.functionTooltipStep[key] = 3
         return true
       }
-      const thirdStep = ['=(-)-', '=(-)+']
-      if (thirdStep.indexOf(actualValue) >= 0) {
+      const thirdStep = /=\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?/
+      if (thirdStep.test(value)) {
         this.functionTooltipStep[key] = 2
         return true
       }
-      const secondStep = ['=(-)']
-      if (secondStep.indexOf(actualValue) >= 0) {
+      const secondStep = /=\([0-9]-[0-9]\)/
+      if (secondStep.test(value)) {
         this.functionTooltipStep[key] = 1
         return true
       }
-      if (actualValue.startsWith('=')) {
+      // const firstStep = /=\(?[0-9]?-?[0-9]?\)/
+      if (value.startsWith('=')) {
         this.functionTooltipStep[key] = 0
         return true
       }
       delete this.functionTooltipStep[key]
       return false
     },
-    calculateValue (func, key) {
-      const cellRegExp = /\(.*?\)/g // Regular expresion to match everything inside parentheses
-      const firstCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
-      const secondCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
-      if (firstCell === key || secondCell === key) {
-        this.functionError = "You should pick a cell that isn't the current one"
-        return 0
+    validateFunction (func, key) {
+      delete this.functionError[key]
+      const cellRegExp = /\([0-9]-[0-9]\)/g // Regular expresion to match everything inside parentheses
+      let firstCell = null
+      let secondCell = null
+      try {
+        firstCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
+        secondCell = cellRegExp.exec(func)[0].replace(/[()]/g, '')
+      } catch (error) {
+        return
       }
-
-      let firstValue = this.getValue(firstCell)
-      let secondValue = this.getValue(secondCell)
+      if (firstCell === key || secondCell === key) {
+        this.functionError[key] = "You should pick a cell that isn't the current one"
+        return
+      }
+      const firstValue = this.getValue(firstCell)
+      const secondValue = this.getValue(secondCell)
 
       if (firstValue.error || secondValue.error) {
-        this.functionError = firstValue.error || secondValue.error
+        this.functionError[key] = firstValue.error || secondValue.error
         return 0
       }
-      this.functionError = null
+      return { firstValue, secondValue }
+    },
+    calculateValue (func, key) {
+      const validation = this.validateFunction(func, key)
+      if (this.functionError[key]) return 0
+      delete this.functionError[key]
+
+      let { secondValue, firstValue } = validation
 
       firstValue = parseInt(firstValue) || 0
       secondValue = parseInt(secondValue) || 0
