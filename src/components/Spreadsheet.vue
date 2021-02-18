@@ -218,7 +218,7 @@ export default {
       this.functionTooltips = null
     },
     checkIfFunction (value, key = null) {
-      const finalStep = /=\([0-9]-[0-9]\)[+-]\([0-9]-[0-9]\)$/
+      const finalStep = /=\(\d+-\d+\)[+-]\(\d+-\d+\)$/
       key = key || this.currentCell
       this.validateFunction(value, key)
       if (finalStep.test(value)) {
@@ -226,19 +226,19 @@ export default {
         if (this.editCell === key) this.isWritingFunction = false
         return true
       }
-      const thirdStep = /=\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?$/
+      const thirdStep = /=\(\d+-\d+\)[+-]\(?(\d+)?-?(\d+)?$/
       if (thirdStep.test(value)) {
         this.functionTooltipStep[key] = 2
         if (this.editCell === key) this.isWritingFunction = true
         return true
       }
-      const secondStep = /=\([0-9]-[0-9]\)$/
+      const secondStep = /=\(\d+-\d+\)$/
       if (secondStep.test(value)) {
         this.functionTooltipStep[key] = 1
         if (this.editCell === key) this.isWritingFunction = true
         return true
       }
-      const firstStep = /=(\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?$)|(=$)/
+      const firstStep = /=(\((\d+)?-?(\d+)?$)|(=$)/
       if (firstStep.test(value)) {
         this.functionTooltipStep[key] = 0
         if (this.editCell === key) this.isWritingFunction = true
@@ -253,7 +253,7 @@ export default {
     },
     validateFunction (func, key) {
       delete this.functionError[key]
-      const cellRegExp = /\([0-9]-[0-9]\)/g // Regular expresion to match everything inside parentheses
+      const cellRegExp = /\(\d+-\d+\)/g // Regular expresion to match everything inside parentheses
       let firstCell = null
       let secondCell = null
       try {
