@@ -260,6 +260,12 @@ export default {
     td.sidebar {
       width: 2rem;
     }
+    th.empty {
+      background-color: #bbbbbb;
+    }
+    td.sidebar {
+      font-weight: bold;
+    }
     td textarea {
       pointer-events: none;
       position: absolute;
