@@ -1,9 +1,11 @@
 <template>
     <table>
         <tr>
+            <th class="empty"></th>
             <th v-for="(column, index) in sheetContent[0]" :key="index">{{ index }}</th>
         </tr>
         <tr v-for="(row, rowIndex) in sheetContent" :key="rowIndex">
+            <td class="sidebar">{{ rowIndex }}</td>
             <td v-for="(cell, cellIndex) in row"
             :tabindex="0"
             :key="cellIndex"
@@ -253,6 +255,10 @@ export default {
     td {
       cursor: pointer;
       overflow: visible;
+    }
+    th.empty,
+    td.sidebar {
+      width: 2rem;
     }
     td textarea {
       pointer-events: none;
