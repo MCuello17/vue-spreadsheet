@@ -11,7 +11,7 @@
             :key="cellIndex"
             @focus="selectCell(`${rowIndex}-${cellIndex}`)"
             @dblclick="selectForEditing"
-            :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`)}"
+            :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`), edit: editCell === `${rowIndex}-${cellIndex}`}"
             @contextmenu="cellOptions($event, `${rowIndex}-${cellIndex}`)"
             >
                 {{ cell.startsWith('=') ? getValue(`${rowIndex}-${cellIndex}`) : cell }}
@@ -73,7 +73,7 @@ export default {
       isWritingFunction: false,
       currentValue: '',
       sheetContent: [
-        ['0', '=(1-1)', '', '5'],
+        ['0', '=(1-1)-(1-1)', '', '5'],
         ['1', '', '', '5'],
         ['1', '', '6', '5']
       ]
@@ -123,7 +123,18 @@ export default {
   },
   methods: {
     selectCell: function (key) {
-      this.unselectForEditing()
+      if (this.isWritingFunction) {
+        if (this.editCell === key) return
+        if (this.functionTooltipStep[this.editCell] !== 0 && this.functionTooltipStep[this.editCell] !== 2) return
+        this.addToValue(`(${key})`)
+        return
+      }
+
+      if (this.editCell !== key) {
+        this.unselectForEditing()
+      } else {
+        this.$refs[key][0].focus()
+      }
       this.closeOptions()
       this.currentCell = key
       if (this.editCell !== key) this.editCell = null
@@ -145,12 +156,11 @@ export default {
     getValue: function (key, crude = false) {
       const row = key.split('-')[0]
       const col = key.split('-')[1]
-      let value = 0
       const currentRow = this.sheetContent[row]
       if (currentRow === undefined || col >= currentRow.length || !col) {
         return { error: 'Selected cell out of range' }
       }
-      value = this.sheetContent[row][col]
+      const value = this.sheetContent[row][col]
       if (this.checkIfFunction(value, key) && !crude && this.functionTooltipStep[key] >= 3) {
         return this.calculateValue(value, key)
       }
@@ -159,6 +169,7 @@ export default {
     unselectForEditing: function () {
       this.closeTooltips()
       this.editCell = null
+      this.isWritingFunction = false
     },
     setValue: function (e = null, val = null) {
       if (e && e.key.length > 1 && e.key !== 'Backspace') return
@@ -169,8 +180,7 @@ export default {
 
       if (newValue.startsWith('=')) {
         this.functionTooltips = this.currentCell
-        this.checkIfFunction(newValue)
-        this.isWritingFunction = true
+        this.checkIfFunction(newValue, this.currentCell)
       } else {
         this.closeTooltips()
       }
@@ -205,29 +215,37 @@ export default {
       this.functionTooltips = null
     },
     checkIfFunction (value, key = null) {
-      const finalStep = /=\([0-9]-[0-9]\)[+-]\([0-9]-[0-9]\)/
+      const finalStep = /=\([0-9]-[0-9]\)[+-]\([0-9]-[0-9]\)$/
       key = key || this.currentCell
       this.validateFunction(value, key)
       if (finalStep.test(value)) {
         this.functionTooltipStep[key] = 3
+        if (this.editCell === key) this.isWritingFunction = false
         return true
       }
-      const thirdStep = /=\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?/
+      const thirdStep = /=\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?$/
       if (thirdStep.test(value)) {
         this.functionTooltipStep[key] = 2
+        if (this.editCell === key) this.isWritingFunction = true
         return true
       }
-      const secondStep = /=\([0-9]-[0-9]\)/
+      const secondStep = /=\([0-9]-[0-9]\)$/
       if (secondStep.test(value)) {
         this.functionTooltipStep[key] = 1
+        if (this.editCell === key) this.isWritingFunction = true
         return true
       }
-      // const firstStep = /=\(?[0-9]?-?[0-9]?\)/
-      if (value.startsWith('=')) {
+      const firstStep = /=(\([0-9]-[0-9]\)[+-]\(?[0-9]?-?[0-9]?$)|(=$)/
+      if (firstStep.test(value)) {
         this.functionTooltipStep[key] = 0
+        if (this.editCell === key) this.isWritingFunction = true
         return true
+      }
+      if (value.startsWith('=') && value.length > 1) {
+        this.functionError[key] = 'Unknown function'
       }
       delete this.functionTooltipStep[key]
+      this.isWritingFunction = false
       return false
     },
     validateFunction (func, key) {
@@ -325,6 +343,9 @@ export default {
       border: 2px solid #439aff;
       background-color: #f3f3f3;
       z-index: 2;
+    }
+    .edit {
+      cursor: text;
     }
     .context-menu {
       position: absolute;
