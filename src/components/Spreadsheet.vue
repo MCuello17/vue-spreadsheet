@@ -24,7 +24,6 @@
                 @keyup="setValue"
                 @keydown.enter="unselectForEditing"
                 @keydown.esc="unselectForEditing"
-                @blur="unselectForEditing"
                 />
                 <div v-if="options == `${rowIndex}-${cellIndex}`" class="context-menu options">
                   <button @click="selectForEditing">Edit</button>
@@ -124,6 +123,7 @@ export default {
   },
   methods: {
     selectCell: function (key) {
+      this.unselectForEditing()
       this.closeOptions()
       this.currentCell = key
       if (this.editCell !== key) this.editCell = null
@@ -156,8 +156,7 @@ export default {
       }
       return value
     },
-    unselectForEditing: function (e) {
-      e.preventDefault()
+    unselectForEditing: function () {
       this.closeTooltips()
       this.editCell = null
     },
@@ -182,6 +181,7 @@ export default {
       let finalValue = this.getValue(key, true)
       finalValue += newToValue
       this.setValue(null, finalValue)
+      this.selectForEditing()
     },
     moveTo: function (newPos) {
       this.closeOptions()
