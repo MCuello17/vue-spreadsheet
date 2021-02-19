@@ -375,10 +375,8 @@ export default {
       z-index: 10;
     }
     .context-menu > button {
-    .context-menu.function-options.pick-underneath .function-options-container {
       bottom: calc(100% + 2.5rem);
       top: auto;
-    }
       cursor: pointer;
       outline: none;
       border: 1px solid #bbb;
