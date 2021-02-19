@@ -1,63 +1,90 @@
 <template>
-    <table>
-        <tr class="header">
-            <th class="empty"></th>
-            <th v-for="(column, index) in sheetContent[0]" :key="index">{{ index }}</th>
-        </tr>
-        <tr v-for="(row, rowIndex) in sheetContent" :key="rowIndex">
-            <td class="sidebar">{{ rowIndex }}</td>
-            <td v-for="(cell, cellIndex) in row"
-            :tabindex="0"
-            :key="cellIndex"
-            @focus="selectCell(`${rowIndex}-${cellIndex}`)"
-            @dblclick="selectForEditing"
-            :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`), edit: editCell === `${rowIndex}-${cellIndex}`}"
-            @contextmenu="cellOptions($event, `${rowIndex}-${cellIndex}`)"
-            >
-                {{ cell.startsWith('=') ? getValue(`${rowIndex}-${cellIndex}`) : cell }}
-                <textarea
-                rows="1"
-                v-if="editCell == `${rowIndex}-${cellIndex}`"
-                :tabindex="-1"
-                :ref="`${rowIndex}-${cellIndex}`"
-                v-model="currentValue"
-                @keyup="setValue"
-                @keydown.enter="unselectForEditing"
-                @keydown.esc="unselectForEditing"
-                />
-                <div v-if="options == `${rowIndex}-${cellIndex}`" class="context-menu options">
-                  <button title="Edit current cell" @click="selectForEditing">Edit</button>
-                  <button title="Start writing a function" @click="setValue(null, '='); selectForEditing($event)">Function</button>
-                </div>
-                <div v-if="functionTooltips == `${rowIndex}-${cellIndex}`"
-                  class="context-menu function-options"
-                  >
-                  <small>Writing a function</small>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 0 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    Please select your first cell
-                  </div>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    Please choose a function
-                  </div>
-                  <button title="Add" tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    +
-                  </button>
-                  <button title="Substract" tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    -
-                  </button>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    Please select your last cell
-                  </div>
-                  <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 3 && !functionError[`${rowIndex}-${cellIndex}`]">
-                    result: <strong>{{ getValue(`${rowIndex}-${cellIndex}`) }}</strong>
-                  </div>
-                  <div v-if="functionError[`${rowIndex}-${cellIndex}`]" class="error">
-                    {{ functionError[`${rowIndex}-${cellIndex}`] }}
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </table>
+  <table>
+    <tr class="header">
+      <th class="empty"/>
+      <th
+        v-for="(column, index) in sheetContent[0]"
+        :key="index">
+        {{ index }}
+      </th>
+    </tr>
+    <tr
+      v-for="(row, rowIndex) in sheetContent"
+      :key="rowIndex">
+      <td class="sidebar">{{ rowIndex }}</td>
+      <td
+        v-for="(cell, cellIndex) in row"
+        :tabindex="0"
+        :key="cellIndex"
+        @focus="selectCell(`${rowIndex}-${cellIndex}`)"
+        @dblclick="selectForEditing"
+        :class="{ selected: isSelected(`${rowIndex}-${cellIndex}`), edit: editCell === `${rowIndex}-${cellIndex}`}"
+        @contextmenu="cellOptions($event, `${rowIndex}-${cellIndex}`)">
+        {{ cell.startsWith('=') ? getValue(`${rowIndex}-${cellIndex}`) : cell }}
+        <textarea
+          rows="1"
+          v-if="editCell == `${rowIndex}-${cellIndex}`"
+          :tabindex="-1"
+          :ref="`${rowIndex}-${cellIndex}`"
+          v-model="currentValue"
+          @keyup="setValue"
+          @keydown.enter="unselectForEditing"
+          @keydown.esc="unselectForEditing"
+        />
+        <div
+          v-if="options == `${rowIndex}-${cellIndex}`"
+          class="context-menu options">
+          <button
+            title="Edit current cell"
+            @click="selectForEditing">
+            Edit
+          </button>
+          <button
+            title="Start writing a function"
+            @click="setValue(null, '='); selectForEditing($event)">
+            Function
+          </button>
+        </div>
+        <div
+          v-if="functionTooltips == `${rowIndex}-${cellIndex}`"
+          class="context-menu function-options"
+        >
+          <small>Writing a function</small>
+          <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 0 && !functionError[`${rowIndex}-${cellIndex}`]">
+            Please select your first cell
+          </div>
+          <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
+            Please choose a function
+          </div>
+          <button
+            title="Add"
+            tabindex="-1"
+            @click="addToValue('+')"
+            v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
+            +
+          </button>
+          <button
+            title="Substract"
+            tabindex="-1"
+            @click="addToValue('-')"
+            v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
+            -
+          </button>
+          <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError[`${rowIndex}-${cellIndex}`]">
+            Please select your last cell
+          </div>
+          <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 3 && !functionError[`${rowIndex}-${cellIndex}`]">
+            result: <strong>{{ getValue(`${rowIndex}-${cellIndex}`) }}</strong>
+          </div>
+          <div
+            v-if="functionError[`${rowIndex}-${cellIndex}`]"
+            class="error">
+            {{ functionError[`${rowIndex}-${cellIndex}`] }}
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
 </template>
 
 <script>
