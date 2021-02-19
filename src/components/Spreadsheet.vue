@@ -26,8 +26,8 @@
                 @keydown.esc="unselectForEditing"
                 />
                 <div v-if="options == `${rowIndex}-${cellIndex}`" class="context-menu options">
-                  <button @click="selectForEditing">Edit</button>
-                  <button @click="setValue(null, '='); selectForEditing($event)">Function</button>
+                  <button title="Edit current cell" @click="selectForEditing">Edit</button>
+                  <button title="Start writing a function" @click="setValue(null, '='); selectForEditing($event)">Function</button>
                 </div>
                 <div v-if="functionTooltips == `${rowIndex}-${cellIndex}`"
                   class="context-menu function-options"
@@ -39,10 +39,10 @@
                   <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     Please choose a function
                   </div>
-                  <button tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
+                  <button title="Add" tabindex="-1" @click="addToValue('+')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     +
                   </button>
-                  <button tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
+                  <button title="Substract" tabindex="-1" @click="addToValue('-')" v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 1 && !functionError[`${rowIndex}-${cellIndex}`]">
                     -
                   </button>
                   <div v-if="functionTooltipStep[`${rowIndex}-${cellIndex}`] == 2 && !functionError[`${rowIndex}-${cellIndex}`]">
@@ -74,8 +74,8 @@ export default {
       currentValue: '',
       sheetContent: [
         ['0', '1', '', '5', '17', '1', ''],
-        ['', '', '8', '11', '', '9', ''],
-        ['', '3', '', '4', '22', '', ''],
+        ['2021', '', '8', '=(1-0)-(4-2)', '', '9', ''],
+        ['', '3', '', '4', '22', '', '5005'],
         ['', '', '5', '10', '5', '434', ''],
         ['17', '1', '1998', '', '2', '6', ''],
         ['8', '', '', '7', '', '', '9']
@@ -127,8 +127,14 @@ export default {
   methods: {
     selectCell: function (key) {
       if (this.isWritingFunction) {
-        if (this.editCell === key) return
-        if (this.functionTooltipStep[this.editCell] !== 0 && this.functionTooltipStep[this.editCell] !== 2) return
+        if (this.editCell === key) {
+          this.selectForEditing()
+          return
+        }
+        if (this.functionTooltipStep[this.editCell] !== 0 && this.functionTooltipStep[this.editCell] !== 2) {
+          this.unselectForEditing()
+          return
+        }
         this.addToValue(`(${key})`)
         return
       }
@@ -208,6 +214,7 @@ export default {
     },
     cellOptions: function (e, cell) {
       e.preventDefault()
+      if (this.isWritingFunction) return
       if (this.currentCell !== cell) this.selectCell(cell)
       this.options = cell
     },
@@ -322,6 +329,7 @@ export default {
     th.empty,
     td.sidebar {
       width: 2rem;
+      cursor: default;
     }
     th.empty {
       background-color: #bbbbbb;
@@ -364,10 +372,25 @@ export default {
       background-color: #fff;
       cursor: default;
       opacity: 1;
-      transition: opacity .5s ease;
+      z-index: 10;
     }
     .context-menu > button {
+    .context-menu.function-options.pick-underneath .function-options-container {
+      bottom: calc(100% + 2.5rem);
+      top: auto;
+    }
       cursor: pointer;
+      outline: none;
+      border: 1px solid #bbb;
+      padding: 5px 2px;
+      background-color: #f3f3f3;
+      font-weight: bold;
+    }
+    .context-menu button:hover {
+      border: 1px solid #439aff;
+    }
+    .context-menu small {
+      font-weight: bold;
     }
     .context-menu > .error {
       color: #ff5858;
