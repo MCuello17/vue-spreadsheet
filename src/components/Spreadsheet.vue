@@ -282,7 +282,7 @@ export default {
       width: 2rem;
       border-spacing: 0;
       width: 100%;
-      min-width: 800px;
+      min-width: 760px;
       box-shadow: 0px 0px 15px 2px #00000027;
       border: 1px solid #bbb;
     }

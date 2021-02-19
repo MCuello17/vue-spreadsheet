@@ -33,4 +33,9 @@ body {
   height: 100vh;
   padding: 10px;
 }
+@media (min-width: 768px) {
+  #app {
+    overflow: hidden;
+  }
+}
 </style>
