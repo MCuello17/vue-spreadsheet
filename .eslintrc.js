@@ -27,8 +27,7 @@ module.exports = {
         component: "always"
       },
       svg: "always",
-      math: "always",
-      templae: "never"
+      math: "always"
     }],
     "vue/multiline-html-element-content-newline": ["error", {
       ignoreWhenEmpty: true,
