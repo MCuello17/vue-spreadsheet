@@ -255,6 +255,7 @@ export default {
       const finalStep = /=\(\d+-\d+\)[+-]\(\d+-\d+\)$/
       key = key || this.currentCell
       this.validateFunction(value, key)
+      if (this.editCell === key) this.isWritingFunction = true
       if (finalStep.test(value)) {
         this.functionTooltipStep[key] = 3
         if (this.editCell === key) this.isWritingFunction = false
@@ -263,26 +264,23 @@ export default {
       const thirdStep = /=\(\d+-\d+\)[+-]\(?(\d+)?-?(\d+)?$/
       if (thirdStep.test(value)) {
         this.functionTooltipStep[key] = 2
-        if (this.editCell === key) this.isWritingFunction = true
         return true
       }
       const secondStep = /=\(\d+-\d+\)$/
       if (secondStep.test(value)) {
         this.functionTooltipStep[key] = 1
-        if (this.editCell === key) this.isWritingFunction = true
         return true
       }
       const firstStep = /=(\((\d+)?-?(\d+)?$)|(=$)/
       if (firstStep.test(value)) {
         this.functionTooltipStep[key] = 0
-        if (this.editCell === key) this.isWritingFunction = true
         return true
       }
+      if (this.editCell === key) this.isWritingFunction = false
       if (value.startsWith('=') && value.length > 1) {
         this.functionError[key] = 'Unknown function'
       }
       delete this.functionTooltipStep[key]
-      this.isWritingFunction = false
       return false
     },
     validateFunction (func, key) {
