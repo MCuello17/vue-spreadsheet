@@ -8,6 +8,11 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+  td.sidebar {
+    width: 2rem;
+    cursor: default;
+    font-weight: bold;
+    border-right: 1px solid var(--separator-highlight);
+  }
 </style>

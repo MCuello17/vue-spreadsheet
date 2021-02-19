@@ -277,95 +277,31 @@ export default {
 </script>
 
 <style>
-    table {
-      table-layout: fixed;
-      width: 2rem;
-      border-spacing: 0;
-      width: 100%;
-      min-width: 760px;
-      box-shadow: 0px 0px 15px 2px #00000027;
-      border: 1px solid #bbb;
-    }
-    th, td {
-      border: .5px solid #f3f3f3;
-      user-select: none;
-      position: relative;
-      height: 2.5rem;
-      overflow: hidden;
-      outline: 0;
-    }
-    th {
-      border-bottom: 1px solid #bbb;
-    }
-    td {
-      cursor: pointer;
-      overflow: visible;
-    }
-    th.empty,
-    td.sidebar {
-      width: 2rem;
-      cursor: default;
-    }
-    th.empty {
-      background-color: #bbbbbb;
-    }
-    td.sidebar {
-      font-weight: bold;
-      border-right: 1px solid #bbb;
-    }
-    td textarea {
-      pointer-events: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      resize: none;
-      outline: none !important;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-    .selected {
-      border: 2px solid #439aff;
-      background-color: #f3f3f3;
-      z-index: 2;
-    }
-    .edit {
-      cursor: text;
-    }
-    .context-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      left: 0;
-      box-shadow: 0px 0px 15px 2px #00000027;
-      display: flex;
-      flex-direction: column;
-      padding: 10px 15px;
-      border: 1px solid #888;
-      gap: 10px;
-      background-color: #fff;
-      cursor: default;
-      opacity: 1;
-      z-index: 10;
-    }
-    .context-menu > button {
-      bottom: calc(100% + 2.5rem);
-      top: auto;
-      cursor: pointer;
-      outline: none;
-      border: 1px solid #bbb;
-      padding: 5px 2px;
-      background-color: #f3f3f3;
-      font-weight: bold;
-    }
-    .context-menu button:hover {
-      border: 1px solid #439aff;
-    }
-    .context-menu small {
-      font-weight: bold;
-    }
-    .context-menu > .error {
-      color: #ff5858;
-    }
+  table {
+    table-layout: fixed;
+    width: 2rem;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 760px;
+    box-shadow: var(--shadow);
+    border: 1px solid #bbb;
+  }
+  td {
+    border: .5px solid var(--separator);
+    user-select: none;
+    position: relative;
+    height: 2.5rem;
+    overflow: hidden;
+    outline: 0;
+    cursor: pointer;
+    overflow: visible;
+  }
+  td.selected {
+    border: 2px solid var(--primary);
+    background-color: var(--separator);
+    z-index: 2;
+  }
+  td.edit {
+    cursor: text;
+  }
 </style>
