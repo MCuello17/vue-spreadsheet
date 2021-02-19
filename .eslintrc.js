@@ -20,26 +20,26 @@ module.exports = {
       alignAttributesVertically: true,
       ignores: []
     }],
-    "vue/html-self-closing": ["error", {
+    'vue/html-self-closing': ['error', {
       html: {
-        void: "never",
-        normal: "always",
-        component: "always"
+        void: 'never',
+        normal: 'always',
+        component: 'always'
       },
-      svg: "always",
-      math: "always"
+      svg: 'always',
+      math: 'always'
     }],
-    "vue/multiline-html-element-content-newline": ["error", {
+    'vue/multiline-html-element-content-newline': ['error', {
       ignoreWhenEmpty: true,
-      ignores: ["pre", "textarea"],
+      ignores: ['pre', 'textarea'],
       allowEmptyLines: false
-  }],
-  "vue/max-attributes-per-line": ["error", {
-    singleline: 1,
-    multiline: {
-      max: 1,
-      allowFirstLine: false
-    }
-  }]
+    }],
+    'vue/max-attributes-per-line': ['error', {
+      singleline: 1,
+      multiline: {
+        max: 1,
+        allowFirstLine: false
+      }
+    }]
   }
 }
