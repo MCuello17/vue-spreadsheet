@@ -22,7 +22,7 @@ npm run dev
 
 Functions are formatted in the following way:
 
-    =([row]-[column])±(([row]-[column]))
+    =([row]-[column])±([row]-[column])
     
  1. All functions **must** start with an Equal sign (**=**).
  2. Following that you should click on the cell you want as first value (or you can write it's position as shown in the example above)
