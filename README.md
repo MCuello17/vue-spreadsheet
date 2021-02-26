@@ -1,4 +1,4 @@
-# spreadsheet_challenge
+# Vue Spreadsheet
 
 ## Project setup
 ```
